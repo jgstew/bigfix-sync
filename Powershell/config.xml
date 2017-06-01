@@ -1,0 +1,13 @@
+<config>
+	<server>bigfix</server>
+	<operator>
+		<username>Extract</username>
+		<password>Extract</password>
+	</operator>
+	<sites>
+		<site>
+			<name>MySite</name>
+			<path>.\Output\MySite</path>
+		</site>
+	</sites>
+</config>
