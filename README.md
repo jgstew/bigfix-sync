@@ -5,9 +5,10 @@ This is currently only an idea / concept.
 ## Idea / Concept
 
 - 2 way sync bigfix site content
-- mapping of 1 (git) folder to 1 custom site
+- mapping of 1 git repo/folder to 1 custom site
   - git pull before sync
   - git add/commit/push after sync
+  - it might be possible to use something other than git for the sync mechanism, but something providing version control makes sense.
 - Import content from (git) folder to a single site in a Root Server
   - If content exists in server that has never synced and has a name conflict, check mod times, do other conflict resolution
   - Since the (git) folder should be version controlled, then it makes sense to favor the server content when overwriting
