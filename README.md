@@ -19,6 +19,6 @@ This is currently only an idea / concept.
 ## Questions
 
 - Can the `fixlet modification time` and `sync time` and `GUID` all be the same but the content different?
-- How to handle conflict resolution when 1 or both items do not yet have a `GUID` assigned, but have the same `fixlet modification time` but different content?
+- How to handle conflict resolution when 1 item does not yet have a `GUID` assigned, but have the same `fixlet modification time` but different content?
   - the `fixlet modification time` is only updated by the console, may not be affected if content is exported, edited, then imported. 
 - Does the bigfix content have an import time?  (check rest api)
