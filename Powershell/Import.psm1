@@ -34,12 +34,17 @@ Function Import-BESRepoContents {
 
     foreach ($Fixlet in $RepoContent) {
         $RepoXML = $Fixlet
+        $RepoModificationTime = [datetime] (Get-BESMIMEField -XML $RepoXML -Name "x-fixlet-modification-time")
         
         $GUID = Get-BESMIMEField -XML $Fixlet -Name "BES Sync GUID"
-
-        $ServerResource = ($ServerContent | Where-Object {(Get-BESMIMEField -XML $_.xml -Name "BES Sync GUID") -eq $GUID}).Resource
         
-        if ($ServerResource) {
+        $ServerItem = ($ServerContent | Where-Object {(Get-BESMIMEField -XML $_.xml -Name "BES Sync GUID") -eq $GUID})
+        $ServerResource = $ServerItem.Resource
+        $ServerModificationTime = [datetime] (Get-BESMIMEField -XML $ServerItem.xml -Name "x-fixlet-modification-time")
+
+        if ($RepoModificationTime -and $ServerModificationTime -and $RepoModificationTime -le $ServerModificationTime)  {
+            write-verbose "Update for $ServerResource not required."
+        } elseif ($ServerResource) {
             write-verbose "Updating $ServerResource with new Fixlet Information"
             Set-BESAPIResource -Credential $Credential -Resource $ServerResource -XML $RepoXML
         } else {
