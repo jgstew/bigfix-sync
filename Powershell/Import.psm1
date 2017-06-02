@@ -33,14 +33,23 @@ Function Import-BESRepoContents {
     $ServerContent = Get-BESSiteContents -Credential $Credential -Server $Server -Site $Site
 
     foreach ($Fixlet in $RepoContent) {
+        $ServerModificationTime = $null
+        $RepoModificationTime = $null
+
         $RepoXML = $Fixlet
-        $RepoModificationTime = [datetime] (Get-BESMIMEField -XML $RepoXML -Name "x-fixlet-modification-time")
+
+        try {
+            $RepoModificationTime = [datetime] (Get-BESMIMEField -XML $RepoXML -Name "x-fixlet-modification-time")
+        } catch {}
         
         $GUID = Get-BESMIMEField -XML $Fixlet -Name "BES Sync GUID"
         
         $ServerItem = ($ServerContent | Where-Object {(Get-BESMIMEField -XML $_.xml -Name "BES Sync GUID") -eq $GUID})
         $ServerResource = $ServerItem.Resource
-        $ServerModificationTime = [datetime] (Get-BESMIMEField -XML $ServerItem.xml -Name "x-fixlet-modification-time")
+        
+        try {
+            $ServerModificationTime = [datetime] (Get-BESMIMEField -XML $ServerItem.xml -Name "x-fixlet-modification-time")
+        } catch {}
 
         if ($RepoModificationTime -and $ServerModificationTime -and $RepoModificationTime -le $ServerModificationTime)  {
             write-verbose "Update for $ServerResource not required."
@@ -49,7 +58,7 @@ Function Import-BESRepoContents {
             Set-BESAPIResource -Credential $Credential -Resource $ServerResource -XML $RepoXML
         } else {
             write-verbose "Adding new Fixlet: $(Get-BESTitle $RepoXML)"
-            Add-BESAPIResource -Credential $Credential -XML $RepoXML
+            Add-BESAPIResource -Credential $Credential -Server $Server -Site $Site -XML $RepoXML
         }
     }
 }
