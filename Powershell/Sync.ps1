@@ -1,3 +1,9 @@
+param (
+    [switch] $Sync,
+    [switch] $Import = $True,
+    [switch] $Export = $True
+)
+
 $PSScriptRoot = "."
 
 import-module ".\Extract.psm1" -force
@@ -16,7 +22,15 @@ $Server = $Config.server
 foreach ($Site in $Config.Sites.Site) {
     $SiteName = $Site.Name
     $Outdir = $Site.Path
+
+    new-item $OutDir -ItemType directory -ErrorAction SilentlyContinue
     
-    Extract-BESSiteContents -Credential $Credential -Server $Server -Site $SiteName -OutDir $OutDir
+    if ($Sync -or $Export) {
+        Extract-BESSiteContents -Credential $Credential -Server $Server -Site $SiteName -OutDir (get-item $OutDir).FullName
+    }
+
+    if ($Sync -or $Import) {
+        Import-BESRepoContents -Credential $Credential -Server $Server -Site $SiteName -OutDir (get-item $OutDir).FullName
+    }
 }
 

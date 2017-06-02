@@ -49,6 +49,53 @@ Function Get-BESAnalyses {
     write-output ((select-xml -content ($Response) -xpath "/BESAPI/Analysis").Node)
 }
 
+Function Get-BESAPIDashboardData {
+    param (
+        $Credential,
+        $Dashboard,
+        $Variable
+    )
+
+    write-error "Get-BESAPIDashboardData: Not Implemented"
+
+    #invoke-webrequest -uri $Resource -Credential $Credential -method get | out-null
+}
+
+Function Set-BESAPIDashboardData {
+    param (
+        $Credential,
+        $Dashboard,
+        $Variable,
+        $Value
+    )
+
+    write-error "Set-BESAPIDashboardData: Not Implemented"
+
+    invoke-webrequest -uri $Resource -Credential $Credential -method post | out-null
+}
+
+Function Set-BESAPIResource {
+    param (
+        $Credential,
+        $Resource,
+        [xml]$XML
+    )
+    
+    invoke-webrequest -uri $Resource -Credential $Credential -method put -body $XML.InnerXML | out-null
+
+}
+
+Function Add-BESAPIResource {
+    param (
+        $Credential,
+        $Server,
+        [xml]$XML
+    )
+    
+    invoke-webrequest -uri "https://$Server`:52311/api/import" -Credential $Credential -method post -body $XML.InnerXML | out-null
+
+}
+
 Function Get-BESAPIResource {
     param (
         $Credential,
@@ -67,7 +114,7 @@ Function Sanitize-BESAPIResource {
 
     $Content = $XML
     $Content = Remove-BESMIMEField -XML $Content -Name "x-fixlet-first-propagation"
-    $Content = Remove-BESMIMEField -XML $Content -Name "x-fixlet-modification-time"
+    #$Content = Remove-BESMIMEField -XML $Content -Name "x-fixlet-modification-time"
     $Content = Remove-BESMIMEField -XML $Content -Name "*bigfixme*"
             
     write-output $Content
@@ -93,7 +140,7 @@ function Get-BESTitle {
         [xml] $XML
     )
 
-    write-output $XML.SelectSingleNode("BES/*/Title")
+    write-output $XML.SelectSingleNode("BES/*/Title").innertext
 }
 
 function Get-BESMIMEField {

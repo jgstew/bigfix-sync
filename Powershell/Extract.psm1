@@ -6,12 +6,24 @@ Function Extract-BESSiteContents {
         $OutDir
     )
 
-    $Contents = Get-BESSiteContents -Credential $Credential -Server $Server -Site $Site
-
-    new-item $OutDir -ItemType directory -ErrorAction SilentlyContinue
+    $Contents = (Get-BESSiteContents -Credential $Credential -Server $Server -Site $Site -UpdateGUID).XML
 
     foreach ($Fixlet in $Contents) {
-        $Title = Remove-InvalidFileNameChars ((Get-BESTitle -XML $Fixlet).innertext)
+        $Title = Remove-InvalidFileNameChars (Get-BESTitle -XML $Fixlet)
+
+        if (test-path "$OutDir\$Title.bes") {
+            $StoreTime = $Null
+            $ServerTime = $Null
+
+            try {
+                $StoreTime  = [datetime] (Get-BESMIMEField -XML $Fixlet -Name "x-fixlet-modification-time")
+                $ServerTime = [datetime]  (Get-BESMIMEField -XML ([xml](get-content "$OutDir\$Title.bes")) -Name "x-fixlet-modification-time")
+            } catch {}
+
+            if ($ServerTime -and $StoreTime -and $StoreTime -ge $ServerTime) {
+                continue;
+            }
+        }
 
         set-content -Value (Format-XML $Fixlet) -Path "$OutDir\$Title.bes"
     }
@@ -34,7 +46,8 @@ Function Get-BESSiteContents {
     param (
         $Credential,
         $Server,
-        $Site
+        $Site,
+        [switch]$UpdateGUID
     )
 
     $RawContent = @()
@@ -45,13 +58,21 @@ Function Get-BESSiteContents {
 
     foreach ($Item in $RawContent) {
         $FixletContent = Get-BESAPIResource -Resource $Item.Resource -Credential $Credential
+
+        # Does the Fixlet have a Sync GUID?
+        if ($UpdateGUID -and !(Get-BESMIMEField -XML $FixletContent -Name "BES Sync GUID")) {
+            $FixletContent = Add-BESMIMEField -XML $FixletContent -Name "BES Sync GUID" -Value (new-guid).guid
+            
+            #Update the Fixlet
+            Set-BESAPIResource -Resource $Item.Resource -Credential $Credential -XML $FixletContent
+        }
+
         $FixletContent = Sanitize-BESAPIResource $FixletContent
 
-        if (!(Get-BESMIMEField -XML $FixletContent -Name "BES Sync GUID")) {
-            $FixletContent = Add-BESMIMEField -XML $FixletContent -Name "BES Sync GUID" -Value (new-guid).guid
+        $SanitizedContent += @{
+            Resource = $Item.Resource
+            XML = $FixletContent
         }
-        
-        $SanitizedContent += $FixletContent
     }
 
     return $SanitizedContent
