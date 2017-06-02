@@ -89,10 +89,11 @@ Function Add-BESAPIResource {
     param (
         $Credential,
         $Server,
+        $Site,
         [xml]$XML
     )
     
-    invoke-webrequest -uri "https://$Server`:52311/api/import" -Credential $Credential -method post -body $XML.InnerXML | out-null
+    invoke-webrequest -uri "https://$Server`:52311/api/import/custom/$Site" -Credential $Credential -method post -body $XML.InnerXML | out-null
 
 }
 
