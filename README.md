@@ -2,6 +2,8 @@
 
 This is currently only an idea / concept.
 
+This is now superseded by the new BigFix 11.0.7+ functionality: https://github.com/bigfix/RepositorySiteExample
+
 ## Idea / Concept
 
 - 2 way sync bigfix site content
